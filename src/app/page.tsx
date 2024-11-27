@@ -12,16 +12,16 @@ interface MapInfo {
   name: string;
   team_ct: Team;
   team_t: Team;
+  round: number;
 }
 
 interface GSIData {
   map: MapInfo;
+  phase_countdowns: { phase_ends_in: string };
   round: { phase: string };
-  phase_countdowns: { phase: string; phase_ends_in: string };
-  allplayers?: Record<string, { name: string; team: string; state: { health: number } }>;
 }
 
-export default function Home() {
+export default function Scoreboard() {
   const [data, setData] = useState<GSIData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,8 +30,8 @@ export default function Home() {
       try {
         const response = await fetch('/api/gsi');
         if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-        const json: GSIData = await response.json();
-        setData(json);
+        const json: GSIData[] = await response.json();
+        setData(json[json.length - 1]);
       } catch (err) {
         setError((err as Error).message);
       }
@@ -46,61 +46,50 @@ export default function Home() {
     return <p style={{ color: 'red' }}>Error: {error}</p>;
   }
 
-  if (!data || !data.map || !data.map.team_ct || !data.map.team_t) {
+  if (!data) {
     return <p>Loading...</p>;
   }
 
-  const { map, round, phase_countdowns, allplayers } = data;
-
-  const renderPlayers = (team: string) => {
-    return (
-      <div className="flex space-x-2">
-        {allplayers &&
-          Object.values(allplayers)
-            .filter((player) => player.team === team)
-            .map((player, index) => (
-              <div
-                key={index}
-                className={`w-4 h-4 rounded ${
-                  player.state.health > 0 ? (team === 'CT' ? 'bg-blue-600' : 'bg-yellow-600') : 'bg-gray-600'
-                }`}
-              ></div>
-            ))}
-      </div>
-    );
-  };
+  const { map, phase_countdowns, round } = data;
 
   return (
-    <main className="p-4 font-sans bg-black text-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Game Status</h1>
+    <main className="p-4 bg-gradient-to-b from-gray-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
+      {/* Название карты */}
+      <h1 className="text-2xl font-bold mb-4">Map: {map.name}</h1>
 
-      <section className="mb-6">
-        <div className="flex justify-between items-center">
-          <div className="team-info text-center">
-            <h3 className="text-2xl font-bold" style={{ color: '#6E58AB' }}>
-              {map.team_ct.name} (CT)
-            </h3>
-            <p className="text-lg font-medium">Score: {map.team_ct.score}</p>
-            {renderPlayers('CT')}
-          </div>
-          <div className="team-info text-center">
-            <h3 className="text-2xl font-bold" style={{ color: '#998959' }}>
-              {map.team_t.name} (T)
-            </h3>
-            <p className="text-lg font-medium">Score: {map.team_t.score}</p>
-            {renderPlayers('T')}
-          </div>
+      {/* Название команд и счет */}
+      <div className="flex justify-center items-center mb-6">
+        {/* CT Team */}
+        <div
+          className="text-center p-4 mx-4 rounded-lg shadow-lg"
+          style={{ backgroundColor: '#6E58AB' }}
+        >
+          <h2 className="text-xl font-bold">{map.team_ct.name}</h2>
+          <p className="text-3xl font-bold">{map.team_ct.score}</p>
         </div>
-      </section>
 
-      <section>
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold">Round Info</h2>
-          <p>Round Phase: {round.phase}</p>
-          <p>Status: {phase_countdowns.phase}</p>
-          <p>Time Remaining: {phase_countdowns.phase_ends_in}s</p>
+        {/* T Team */}
+        <div
+          className="text-center p-4 mx-4 rounded-lg shadow-lg"
+          style={{ backgroundColor: '#998959' }}
+        >
+          <h2 className="text-xl font-bold">{map.team_t.name}</h2>
+          <p className="text-3xl font-bold">{map.team_t.score}</p>
         </div>
-      </section>
+      </div>
+
+      {/* Номер раунда */}
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold">Round: {map.round}</h2>
+      </div>
+
+      {/* Статус раунда и таймер */}
+      <div className="text-center bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 className="text-lg font-semibold mb-2">Round Status: {round.phase}</h2>
+        <p className="text-lg">
+          Time Remaining: <span className="font-bold">{phase_countdowns.phase_ends_in}s</span>
+        </p>
+      </div>
     </main>
   );
 }
