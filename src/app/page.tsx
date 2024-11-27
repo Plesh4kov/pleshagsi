@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 import { useEffect, useState } from 'react';
 
@@ -38,24 +39,37 @@ interface GSIData {
 
 export default function Home() {
   const [data, setData] = useState<GSIData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch('/api/gsi');
-        if (response.ok) {
-          const json = await response.json();
-          setData(json[json.length - 1]); // Получаем последние данные
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.status}`);
         }
-      } catch (error) {
-        console.error('Error fetching GSI data:', error);
+        const json = await response.json();
+
+        // Убедимся, что JSON содержит нужные данные
+        if (Array.isArray(json) && json.length > 0) {
+          setData(json[json.length - 1]); // Получаем последние данные
+        } else {
+          setError('No data available');
+        }
+      } catch (err: any) {
+        setError(err.message || 'An unknown error occurred');
       }
     };
 
     // Запрашиваем данные каждые 2 секунды
     const interval = setInterval(fetchData, 2000);
+    fetchData(); // Первый вызов сразу
     return () => clearInterval(interval);
   }, []);
+
+  if (error) {
+    return <p style={{ color: 'red' }}>Error: {error}</p>;
+  }
 
   if (!data) {
     return <p>Loading...</p>;
@@ -74,7 +88,7 @@ export default function Home() {
         <div>
           <h3>CT Players</h3>
           <ul>
-            {map.team_ct.players.map((player, index) => (
+            {map.team_ct.players?.map((player, index) => (
               <li key={index}>
                 {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
               </li>
@@ -84,7 +98,7 @@ export default function Home() {
         <div>
           <h3>T Players</h3>
           <ul>
-            {map.team_t.players.map((player, index) => (
+            {map.team_t.players?.map((player, index) => (
               <li key={index}>
                 {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
               </li>
@@ -98,7 +112,7 @@ export default function Home() {
       <div>
         <h3>Chat</h3>
         <ul>
-          {round.chat.map((msg, index) => (
+          {round.chat?.map((msg, index) => (
             <li key={index}>
               <strong>{msg.player}:</strong> {msg.message}
             </li>
@@ -109,7 +123,7 @@ export default function Home() {
       <div>
         <h3>Server Messages</h3>
         <ul>
-          {round.server_messages.map((msg, index) => (
+          {round.server_messages?.map((msg, index) => (
             <li key={index}>{msg}</li>
           ))}
         </ul>
