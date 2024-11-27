@@ -24,23 +24,56 @@ interface GSIData {
 export default function Scoreboard() {
   const [data, setData] = useState<GSIData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [password, setPassword] = useState<string>('');
+  const [authenticated, setAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/gsi');
-        if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-        const json: GSIData[] = await response.json();
-        setData(json[json.length - 1]);
-      } catch (err) {
-        setError((err as Error).message);
-      }
-    };
+    if (authenticated) {
+      const fetchData = async () => {
+        try {
+          const response = await fetch('/api/gsi');
+          if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+          const json: GSIData[] = await response.json();
+          setData(json[json.length - 1]);
+        } catch (err) {
+          setError((err as Error).message);
+        }
+      };
 
-    fetchData();
-    const interval = setInterval(fetchData, 2000);
-    return () => clearInterval(interval);
-  }, []);
+      fetchData();
+      const interval = setInterval(fetchData, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [authenticated]);
+
+  const handlePasswordSubmit = () => {
+    if (password === '2525') {
+      setAuthenticated(true);
+    } else {
+      alert('Incorrect password!');
+    }
+  };
+
+  if (!authenticated) {
+    return (
+      <main className="p-4 bg-gradient-to-b from-gray-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold mb-4">Enter Password to Access Stats</h1>
+        <input
+          type="password"
+          className="p-2 rounded border-2 border-gray-500 mb-4"
+          placeholder="Enter password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          onClick={handlePasswordSubmit}
+        >
+          Submit
+        </button>
+      </main>
+    );
+  }
 
   if (error) {
     return <p style={{ color: 'red' }}>Error: {error}</p>;
