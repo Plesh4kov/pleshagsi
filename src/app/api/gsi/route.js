@@ -9,7 +9,7 @@ export async function POST(request) {
       status: 200,
     });
   } catch (error) {
-    // Выводим ошибку явно
+    /* eslint-disable-next-line no-console */
     console.error("Error occurred while processing GSI data:", error);
     return new Response(JSON.stringify({ error: "Invalid data" }), {
       status: 400,
