@@ -3,9 +3,15 @@
 import { useEffect, useState } from 'react';
 import '../styles/styles.css';
 
+interface Player {
+  name: string;
+  state: { health: number };
+}
+
 interface Team {
   name: string;
   score: number;
+  players: Player[];
 }
 
 interface MapInfo {
@@ -55,31 +61,56 @@ export default function Scoreboard() {
   return (
     <main className="p-4 bg-gradient-to-b from-gray-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
       {/* Название карты */}
-      <h1 className="text-2xl font-bold mb-4">Map: {map.name}</h1>
+      <h1 className="text-2xl font-bold mb-6">Map: {map.name}</h1>
 
       {/* Название команд и счет */}
-      <div className="flex justify-center items-center mb-6">
+      <div className="flex justify-between items-center w-full max-w-4xl mb-6">
         {/* CT Team */}
-        <div
-          className="text-center p-4 mx-4 rounded-lg shadow-lg"
-          style={{ backgroundColor: '#6E58AB' }}
-        >
+        <div className="text-center p-4 mx-4 rounded-lg shadow-lg w-1/3" style={{ backgroundColor: '#6E58AB' }}>
           <h2 className="text-xl font-bold">{map.team_ct.name}</h2>
           <p className="text-3xl font-bold">{map.team_ct.score}</p>
         </div>
 
         {/* T Team */}
-        <div
-          className="text-center p-4 mx-4 rounded-lg shadow-lg"
-          style={{ backgroundColor: '#998959' }}
-        >
+        <div className="text-center p-4 mx-4 rounded-lg shadow-lg w-1/3" style={{ backgroundColor: '#998959' }}>
           <h2 className="text-xl font-bold">{map.team_t.name}</h2>
           <p className="text-3xl font-bold">{map.team_t.score}</p>
         </div>
       </div>
 
+      {/* Состояние игроков */}
+      <div className="flex justify-between items-center w-full max-w-4xl mb-6">
+        {/* CT Players */}
+        <div className="flex space-x-2">
+          {map.team_ct.players.map((player, index) => (
+            <div
+              key={index}
+              className="w-8 h-8 rounded-lg shadow-lg"
+              style={{
+                backgroundColor: player.state.health > 0 ? '#6E58AB' : '#4A4A4A',
+              }}
+              title={player.name}
+            ></div>
+          ))}
+        </div>
+
+        {/* T Players */}
+        <div className="flex space-x-2">
+          {map.team_t.players.map((player, index) => (
+            <div
+              key={index}
+              className="w-8 h-8 rounded-lg shadow-lg"
+              style={{
+                backgroundColor: player.state.health > 0 ? '#998959' : '#4A4A4A',
+              }}
+              title={player.name}
+            ></div>
+          ))}
+        </div>
+      </div>
+
       {/* Номер раунда */}
-      <div className="mb-4">
+      <div className="mb-6">
         <h2 className="text-xl font-semibold">Round: {map.round}</h2>
       </div>
 
