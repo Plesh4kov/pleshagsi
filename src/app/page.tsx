@@ -110,8 +110,7 @@ export default function Home() {
       <section>
         <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold">Round Info</h2>
-          <p>Round: {map.round}</p>
-          <p>Status: {round.phase}</p>
+          <p>Round Phase: {round.phase}</p>
           <p>Time Remaining: {phase_countdowns.phase_ends_in}s</p>
         </div>
       </section>
