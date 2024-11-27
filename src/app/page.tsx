@@ -38,21 +38,37 @@ interface GSIData {
 
 export default function Home() {
   const [data, setData] = useState<GSIData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('/api/gsi');
-      const json: GSIData[] = await response.json();
-      setData(json[json.length - 1]); // Получаем последние данные
+      try {
+        const response = await fetch('/api/gsi');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.status}`);
+        }
+        const json: GSIData[] = await response.json();
+
+        if (json.length > 0) {
+          setData(json[json.length - 1]);
+        } else {
+          setError('No data available');
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      }
     };
 
-    // Запрос данных каждые 2 секунды
     const interval = setInterval(fetchData, 2000);
     fetchData();
     return () => clearInterval(interval);
   }, []);
 
-  if (!data) {
+  if (error) {
+    return <p style={{ color: 'red' }}>Error: {error}</p>;
+  }
+
+  if (!data || !data.map || !data.round) {
     return <p>Loading...</p>;
   }
 
@@ -75,7 +91,7 @@ export default function Home() {
           <div>
             <h3>CT Team</h3>
             <ul>
-              {map.team_ct.players.map((player: Player, index: number) => (
+              {map.team_ct.players?.map((player: Player, index: number) => (
                 <li key={index}>
                   {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
                 </li>
@@ -85,7 +101,7 @@ export default function Home() {
           <div>
             <h3>T Team</h3>
             <ul>
-              {map.team_t.players.map((player: Player, index: number) => (
+              {map.team_t.players?.map((player: Player, index: number) => (
                 <li key={index}>
                   {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
                 </li>
@@ -103,7 +119,7 @@ export default function Home() {
       <section style={{ marginBottom: '20px' }}>
         <h2>Chat Messages</h2>
         <ul>
-          {round.chat.map((msg: ChatMessage, index: number) => (
+          {round.chat?.map((msg: ChatMessage, index: number) => (
             <li key={index}>
               <strong>{msg.player}:</strong> {msg.message}
             </li>
@@ -114,7 +130,7 @@ export default function Home() {
       <section>
         <h2>Server Messages</h2>
         <ul>
-          {round.server_messages.map((msg: string, index: number) => (
+          {round.server_messages?.map((msg: string, index: number) => (
             <li key={index}>{msg}</li>
           ))}
         </ul>
