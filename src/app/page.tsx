@@ -30,7 +30,7 @@ interface MapInfo {
 
 interface GSIData {
   map: MapInfo;
-  player: { name: string; team: string };
+  player: Player; // Указываем, что player имеет тип Player
   phase_countdowns: { phase: string; phase_ends_in: string };
   round: { phase: string };
 }
@@ -91,6 +91,8 @@ export default function Home() {
           <h2 className="text-xl font-semibold">Observer</h2>
           <p className="text-lg">Currently Observing: <span className="text-yellow-400">{player.name}</span></p>
           <p className="text-lg">Team: <span className="text-yellow-400">{player.team}</span></p>
+          <p className="text-lg">Health: <span className="text-green-400">{player.state.health}</span></p>
+          <p className="text-lg">Armor: <span className="text-blue-400">{player.state.armor}</span></p>
         </div>
         <div className="bg-gray-700 p-4 rounded-lg shadow-lg mt-4">
           <h2 className="text-xl font-semibold">Round Status</h2>
