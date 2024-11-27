@@ -2,70 +2,42 @@
 
 import { useEffect, useState } from 'react';
 
-// Интерфейс для описания данных GSI
-interface GSIProvider {
+// Интерфейсы для типов данных
+interface Player {
   name: string;
-  appid: number;
-  version: number;
-  steamid: string;
-  timestamp: number;
+  kills: number;
+  deaths: number;
 }
 
-interface GSITeam {
+interface Team {
   score: number;
-  players_alive: number;
-  timeouts_remaining: number;
+  players: Player[];
 }
 
-interface GSIMap {
-  mode: string;
+interface MapData {
   name: string;
-  phase: string;
-  round: number;
-  team_ct: GSITeam;
-  team_t: GSITeam;
+  team_ct: Team;
+  team_t: Team;
 }
 
-interface GSIPlayerState {
-  health: number;
-  armor: number;
-  helmet: boolean;
-  money: number;
-  round_kills: number;
-  round_killhs: number;
+interface ChatMessage {
+  player: string;
+  message: string;
 }
 
-interface GSIPlayerWeapon {
-  name: string;
-  ammo_clip: number;
-  ammo_clip_max: number;
-  ammo_reserve: number;
-  state: string;
-}
-
-interface GSIPlayer {
-  steamid: string;
-  name: string;
-  team: string;
-  state: GSIPlayerState;
-  weapons: Record<string, GSIPlayerWeapon>;
-}
-
-interface GSIRound {
-  phase: string;
-  bomb: string | null;
-  win_team: string | null;
+interface RoundData {
+  status: string;
+  chat: ChatMessage[];
+  server_messages: string[];
 }
 
 interface GSIData {
-  provider: GSIProvider;
-  map: GSIMap;
-  player: GSIPlayer;
-  round: GSIRound;
+  map: MapData;
+  round: RoundData;
 }
 
 export default function Home() {
-  const [data, setData] = useState<GSIData[]>([]);
+  const [data, setData] = useState<GSIData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,7 +45,7 @@ export default function Home() {
         const response = await fetch('/api/gsi');
         if (response.ok) {
           const json = await response.json();
-          setData(json); // Обновляем данные
+          setData(json[json.length - 1]); // Получаем последние данные
         }
       } catch (error) {
         console.error('Error fetching GSI data:', error);
@@ -85,23 +57,63 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  if (!data) {
+    return <p>Loading...</p>;
+  }
+
+  const { map, round } = data;
+
   return (
     <main style={{ padding: '20px' }}>
-      <h1>GSI Data Viewer</h1>
-      {data.length > 0 ? (
+      <h1>Game Status</h1>
+      <h2>Map: {map.name}</h2>
+      <h3>Score</h3>
+      <p>CT: {map.team_ct.score} - T: {map.team_t.score}</p>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div>
+          <h3>CT Players</h3>
+          <ul>
+            {map.team_ct.players.map((player, index) => (
+              <li key={index}>
+                {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3>T Players</h3>
+          <ul>
+            {map.team_t.players.map((player, index) => (
+              <li key={index}>
+                {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <h3>Round Status: {round.status}</h3>
+
+      <div>
+        <h3>Chat</h3>
         <ul>
-          {data.map((entry, index) => (
+          {round.chat.map((msg, index) => (
             <li key={index}>
-              <strong>Round {index + 1}:</strong>
-              <pre style={{ background: '#f4f4f4', padding: '10px', borderRadius: '5px' }}>
-                {JSON.stringify(entry, null, 2)}
-              </pre>
+              <strong>{msg.player}:</strong> {msg.message}
             </li>
           ))}
         </ul>
-      ) : (
-        <p>No data received yet...</p>
-      )}
+      </div>
+
+      <div>
+        <h3>Server Messages</h3>
+        <ul>
+          {round.server_messages.map((msg, index) => (
+            <li key={index}>{msg}</li>
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }
