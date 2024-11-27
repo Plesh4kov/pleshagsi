@@ -2,34 +2,18 @@ let lastGSIData = null; // Переменная для хранения посл
 
 export async function POST(request) {
   try {
-    const contentType = request.headers.get('content-type') || '';
-    let data;
+    const textData = await request.text(); // Читаем тело запроса как текст
+    console.log('Raw data received:', textData);
 
-    if (contentType.includes('application/json')) {
-      data = await request.json();
-    } else {
-      // Если данные не JSON, читаем их как текст
-      const textData = await request.text();
-      try {
-        data = JSON.parse(textData);
-      } catch {
-        console.error('Invalid JSON:', textData);
-        return new Response(JSON.stringify({ error: 'Invalid JSON format' }), {
-          status: 400,
-        });
-      }
-    }
+    // Сохраняем сырые данные для отображения
+    lastGSIData = { raw: textData };
 
-    lastGSIData = data; // Сохраняем данные
-    console.log('GSI Data Received:', data);
-
-    return new Response(JSON.stringify({ message: 'GSI data received' }), {
+    return new Response(JSON.stringify({ message: 'Data received' }), {
       status: 200,
     });
-  } catch {
-    // Линтер не требует переменной 'error' в catch
-    console.error('An unexpected error occurred while processing data.');
-    return new Response(JSON.stringify({ error: 'Error processing data' }), {
+  } catch (error) {
+    console.error('Error processing data:', error);
+    return new Response(JSON.stringify({ error: 'Failed to process data' }), {
       status: 500,
     });
   }
