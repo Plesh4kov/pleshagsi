@@ -2,38 +2,41 @@
 
 import { useEffect, useState } from 'react';
 
-// Типы для данных
+interface PlayerState {
+  health: number;
+  armor: number;
+  money: number;
+  equip_value: number;
+}
+
 interface Player {
   name: string;
-  kills: number;
-  deaths: number;
+  state: PlayerState;
+  match_stats: {
+    kills: number;
+    assists: number;
+    deaths: number;
+  };
+  weapons: Record<string, { name: string; state: string }>;
 }
 
 interface Team {
+  name: string;
   score: number;
-  players: Player[];
 }
 
-interface MapData {
+interface Map {
   name: string;
   team_ct: Team;
   team_t: Team;
 }
 
-interface ChatMessage {
-  player: string;
-  message: string;
-}
-
-interface RoundData {
-  status: string;
-  chat: ChatMessage[];
-  server_messages: string[];
-}
-
 interface GSIData {
-  map: MapData;
-  round: RoundData;
+  map: Map;
+  allplayers: Record<string, Player>;
+  round: {
+    phase: string;
+  };
 }
 
 export default function Home() {
@@ -48,12 +51,7 @@ export default function Home() {
           throw new Error(`Failed to fetch: ${response.status}`);
         }
         const json: GSIData[] = await response.json();
-
-        if (json.length > 0) {
-          setData(json[json.length - 1]);
-        } else {
-          setError('No data available');
-        }
+        setData(json[json.length - 1]);
       } catch (err) {
         setError((err as Error).message);
       }
@@ -68,72 +66,48 @@ export default function Home() {
     return <p style={{ color: 'red' }}>Error: {error}</p>;
   }
 
-  if (!data || !data.map || !data.round) {
+  if (!data) {
     return <p>Loading...</p>;
   }
 
-  const { map, round } = data;
+  const { map, allplayers, round } = data;
 
   return (
-    <main style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Game Status</h1>
+    <main className="p-4 font-sans">
+      <h1 className="text-2xl font-bold mb-4">Game Status</h1>
 
-      <section style={{ marginBottom: '20px' }}>
-        <h2>Map Information</h2>
+      {/* Map and Team Information */}
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold">Map Information</h2>
         <p><strong>Map:</strong> {map.name}</p>
-        <p><strong>CT Score:</strong> {map.team_ct.score}</p>
-        <p><strong>T Score:</strong> {map.team_t.score}</p>
+        <p><strong>CT Team:</strong> {map.team_ct.name} - {map.team_ct.score}</p>
+        <p><strong>T Team:</strong> {map.team_t.name} - {map.team_t.score}</p>
       </section>
 
-      <section style={{ marginBottom: '20px' }}>
-        <h2>Teams</h2>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <div>
-            <h3>CT Team</h3>
-            <ul>
-              {map.team_ct.players?.map((player: Player, index: number) => (
-                <li key={index}>
-                  {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3>T Team</h3>
-            <ul>
-              {map.team_t.players?.map((player: Player, index: number) => (
-                <li key={index}>
-                  {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
-                </li>
-              ))}
-            </ul>
-          </div>
+      {/* Player Information */}
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold">Players</h2>
+        <div className="grid grid-cols-2 gap-4">
+          {Object.values(allplayers).map((player, index) => (
+            <div key={index} className="p-4 border rounded-lg">
+              <h3 className="font-bold">{player.name}</h3>
+              <p><strong>Health:</strong> {player.state.health}</p>
+              <p><strong>Armor:</strong> {player.state.armor}</p>
+              <p><strong>Money:</strong> ${player.state.money}</p>
+              <p><strong>Kills:</strong> {player.match_stats.kills}</p>
+              <p><strong>Deaths:</strong> {player.match_stats.deaths}</p>
+              <p><strong>Active Weapon:</strong> {
+                Object.values(player.weapons).find(w => w.state === 'active')?.name || 'None'
+              }</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section style={{ marginBottom: '20px' }}>
-        <h2>Round Status</h2>
-        <p><strong>Status:</strong> {round.status}</p>
-      </section>
-
-      <section style={{ marginBottom: '20px' }}>
-        <h2>Chat Messages</h2>
-        <ul>
-          {round.chat?.map((msg: ChatMessage, index: number) => (
-            <li key={index}>
-              <strong>{msg.player}:</strong> {msg.message}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h2>Server Messages</h2>
-        <ul>
-          {round.server_messages?.map((msg: string, index: number) => (
-            <li key={index}>{msg}</li>
-          ))}
-        </ul>
+      {/* Round Status */}
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold">Round Status</h2>
+        <p><strong>Phase:</strong> {round.phase}</p>
       </section>
     </main>
   );
