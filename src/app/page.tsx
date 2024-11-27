@@ -2,17 +2,51 @@
 
 import { useEffect, useState } from 'react';
 
+// Типы для данных
+interface Player {
+  name: string;
+  kills: number;
+  deaths: number;
+}
+
+interface Team {
+  score: number;
+  players: Player[];
+}
+
+interface MapData {
+  name: string;
+  team_ct: Team;
+  team_t: Team;
+}
+
+interface ChatMessage {
+  player: string;
+  message: string;
+}
+
+interface RoundData {
+  status: string;
+  chat: ChatMessage[];
+  server_messages: string[];
+}
+
+interface GSIData {
+  map: MapData;
+  round: RoundData;
+}
+
 export default function Home() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<GSIData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch('/api/gsi');
-      const json = await response.json();
-      setData(json[json.length - 1]); // Берём последний элемент из массива
+      const json: GSIData[] = await response.json();
+      setData(json[json.length - 1]); // Получаем последние данные
     };
 
-    // Обновляем данные каждые 2 секунды
+    // Запрос данных каждые 2 секунды
     const interval = setInterval(fetchData, 2000);
     fetchData();
     return () => clearInterval(interval);
@@ -22,15 +56,17 @@ export default function Home() {
     return <p>Loading...</p>;
   }
 
+  const { map, round } = data;
+
   return (
     <main style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h1>Game Status</h1>
 
       <section style={{ marginBottom: '20px' }}>
         <h2>Map Information</h2>
-        <p><strong>Map:</strong> {data.map.name}</p>
-        <p><strong>CT Score:</strong> {data.map.team_ct.score}</p>
-        <p><strong>T Score:</strong> {data.map.team_t.score}</p>
+        <p><strong>Map:</strong> {map.name}</p>
+        <p><strong>CT Score:</strong> {map.team_ct.score}</p>
+        <p><strong>T Score:</strong> {map.team_t.score}</p>
       </section>
 
       <section style={{ marginBottom: '20px' }}>
@@ -39,7 +75,7 @@ export default function Home() {
           <div>
             <h3>CT Team</h3>
             <ul>
-              {data.map.team_ct.players.map((player: any, index: number) => (
+              {map.team_ct.players.map((player: Player, index: number) => (
                 <li key={index}>
                   {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
                 </li>
@@ -49,7 +85,7 @@ export default function Home() {
           <div>
             <h3>T Team</h3>
             <ul>
-              {data.map.team_t.players.map((player: any, index: number) => (
+              {map.team_t.players.map((player: Player, index: number) => (
                 <li key={index}>
                   {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
                 </li>
@@ -61,13 +97,13 @@ export default function Home() {
 
       <section style={{ marginBottom: '20px' }}>
         <h2>Round Status</h2>
-        <p><strong>Status:</strong> {data.round.status}</p>
+        <p><strong>Status:</strong> {round.status}</p>
       </section>
 
       <section style={{ marginBottom: '20px' }}>
         <h2>Chat Messages</h2>
         <ul>
-          {data.round.chat.map((msg: any, index: number) => (
+          {round.chat.map((msg: ChatMessage, index: number) => (
             <li key={index}>
               <strong>{msg.player}:</strong> {msg.message}
             </li>
@@ -78,7 +114,7 @@ export default function Home() {
       <section>
         <h2>Server Messages</h2>
         <ul>
-          {data.round.server_messages.map((msg: string, index: number) => (
+          {round.server_messages.map((msg: string, index: number) => (
             <li key={index}>{msg}</li>
           ))}
         </ul>
