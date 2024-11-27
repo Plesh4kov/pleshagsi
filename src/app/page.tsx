@@ -3,31 +3,23 @@
 import { useEffect, useState } from 'react';
 import '../styles/styles.css';
 
-interface Player {
-  name: string;
-  state: { health: number };
-}
-
-interface Team {
-  name: string;
-  score: number;
-  players: Player[];
-}
-
-interface MapInfo {
-  name: string;
-  team_ct: Team;
-  team_t: Team;
-  round: number;
-}
-
 interface GSIData {
-  map: MapInfo;
-  phase_countdowns: { phase_ends_in: string };
-  round: { phase: string };
+  map: {
+    name: string;
+    team_ct: { name: string; score: number };
+    team_t: { name: string; score: number };
+    round: number;
+  };
+  phase_countdowns: { phase: string; phase_ends_in: string };
+  allplayers: {
+    [key: string]: {
+      team: string;
+      state: { health: number };
+    };
+  };
 }
 
-export default function Scoreboard() {
+export default function GameUI() {
   const [data, setData] = useState<GSIData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,8 +28,8 @@ export default function Scoreboard() {
       try {
         const response = await fetch('/api/gsi');
         if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-        const json: GSIData[] = await response.json();
-        setData(json[json.length - 1]);
+        const json: GSIData = await response.json();
+        setData(json);
       } catch (err) {
         setError((err as Error).message);
       }
@@ -52,75 +44,70 @@ export default function Scoreboard() {
     return <p style={{ color: 'red' }}>Error: {error}</p>;
   }
 
-  // Добавляем проверку наличия данных
-  if (!data || !data.map || !data.map.team_ct || !data.map.team_t) {
+  if (!data) {
     return <p>Loading...</p>;
   }
 
-  const { map, phase_countdowns, round } = data;
+  const { map, phase_countdowns, allplayers } = data;
+
+  // Сортируем игроков по командам
+  const ctPlayers = Object.values(allplayers).filter((player) => player.team === 'CT');
+  const tPlayers = Object.values(allplayers).filter((player) => player.team === 'T');
 
   return (
-    <main className="p-4 bg-gradient-to-b from-gray-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
+    <main className="min-h-screen bg-black text-white p-8 flex flex-col items-center">
       {/* Название карты */}
-      <h1 className="text-2xl font-bold mb-6">Map: {map.name}</h1>
+      <h1 className="text-4xl font-bold mb-4">{map.name}</h1>
 
-      {/* Название команд и счет */}
-      <div className="flex justify-between items-center w-full max-w-4xl mb-6">
-        {/* CT Team */}
-        <div className="text-center p-4 mx-4 rounded-lg shadow-lg w-1/3" style={{ backgroundColor: '#6E58AB' }}>
-          <h2 className="text-xl font-bold">{map.team_ct.name}</h2>
-          <p className="text-3xl font-bold">{map.team_ct.score}</p>
+      {/* Информация о командах */}
+      <div className="flex justify-between items-center w-full max-w-4xl mb-8">
+        <div className="flex-1 text-center">
+          <h2 className="text-2xl font-bold" style={{ color: '#6E58AB' }}>
+            {map.team_ct.name}
+          </h2>
+          <p className="text-3xl">{map.team_ct.score}</p>
         </div>
-
-        {/* T Team */}
-        <div className="text-center p-4 mx-4 rounded-lg shadow-lg w-1/3" style={{ backgroundColor: '#998959' }}>
-          <h2 className="text-xl font-bold">{map.team_t.name}</h2>
-          <p className="text-3xl font-bold">{map.team_t.score}</p>
+        <div className="flex-1 text-center">
+          <h2 className="text-2xl font-bold" style={{ color: '#998959' }}>
+            {map.team_t.name}
+          </h2>
+          <p className="text-3xl">{map.team_t.score}</p>
         </div>
       </div>
 
+      {/* Номер раунда */}
+      <div className="text-xl mb-6">
+        <p>Round: {map.round}</p>
+        <p>
+          Phase: {phase_countdowns.phase} ({phase_countdowns.phase_ends_in}s left)
+        </p>
+      </div>
+
       {/* Состояние игроков */}
-      <div className="flex justify-between items-center w-full max-w-4xl mb-6">
+      <div className="flex justify-between w-full max-w-4xl">
         {/* CT Players */}
-        <div className="flex space-x-2">
-          {map.team_ct.players.map((player, index) => (
+        <div className="flex gap-2">
+          {ctPlayers.map((player, index) => (
             <div
               key={index}
-              className="w-8 h-8 rounded-lg shadow-lg"
-              style={{
-                backgroundColor: player.state.health > 0 ? '#6E58AB' : '#4A4A4A',
-              }}
-              title={player.name}
+              className={`w-10 h-10 rounded-md ${
+                player.state.health > 0 ? 'bg-[#6E58AB]' : 'bg-gray-500'
+              }`}
             ></div>
           ))}
         </div>
 
         {/* T Players */}
-        <div className="flex space-x-2">
-          {map.team_t.players.map((player, index) => (
+        <div className="flex gap-2">
+          {tPlayers.map((player, index) => (
             <div
               key={index}
-              className="w-8 h-8 rounded-lg shadow-lg"
-              style={{
-                backgroundColor: player.state.health > 0 ? '#998959' : '#4A4A4A',
-              }}
-              title={player.name}
+              className={`w-10 h-10 rounded-md ${
+                player.state.health > 0 ? 'bg-[#998959]' : 'bg-gray-500'
+              }`}
             ></div>
           ))}
         </div>
-      </div>
-
-      {/* Номер раунда */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold">Round: {map.round}</h2>
-      </div>
-
-      {/* Статус раунда и таймер */}
-      <div className="text-center bg-gray-800 p-6 rounded-lg shadow-lg">
-        <h2 className="text-lg font-semibold mb-2">Round Status: {round.phase}</h2>
-        <p className="text-lg">
-          Time Remaining: <span className="font-bold">{phase_countdowns.phase_ends_in}s</span>
-        </p>
       </div>
     </main>
   );
