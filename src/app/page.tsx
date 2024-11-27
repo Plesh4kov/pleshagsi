@@ -52,7 +52,8 @@ export default function Scoreboard() {
     return <p style={{ color: 'red' }}>Error: {error}</p>;
   }
 
-  if (!data) {
+  // Добавляем проверку наличия данных
+  if (!data || !data.map || !data.map.team_ct || !data.map.team_t) {
     return <p>Loading...</p>;
   }
 
