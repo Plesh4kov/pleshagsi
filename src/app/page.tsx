@@ -1,5 +1,4 @@
 'use client';
-import React from 'react';
 
 import { useEffect, useState } from 'react';
 
@@ -48,7 +47,7 @@ export default function Home() {
         if (!response.ok) {
           throw new Error(`Failed to fetch: ${response.status}`);
         }
-        const json = await response.json();
+        const json: GSIData[] = await response.json();
 
         // Убедимся, что JSON содержит нужные данные
         if (Array.isArray(json) && json.length > 0) {
@@ -56,8 +55,8 @@ export default function Home() {
         } else {
           setError('No data available');
         }
-      } catch (err: any) {
-        setError(err.message || 'An unknown error occurred');
+      } catch (err: unknown) {
+        setError((err as Error).message || 'An unknown error occurred');
       }
     };
 
@@ -88,7 +87,7 @@ export default function Home() {
         <div>
           <h3>CT Players</h3>
           <ul>
-            {map.team_ct.players?.map((player, index) => (
+            {map.team_ct.players.map((player: Player, index: number) => (
               <li key={index}>
                 {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
               </li>
@@ -98,7 +97,7 @@ export default function Home() {
         <div>
           <h3>T Players</h3>
           <ul>
-            {map.team_t.players?.map((player, index) => (
+            {map.team_t.players.map((player: Player, index: number) => (
               <li key={index}>
                 {player.name} - Kills: {player.kills}, Deaths: {player.deaths}
               </li>
@@ -112,7 +111,7 @@ export default function Home() {
       <div>
         <h3>Chat</h3>
         <ul>
-          {round.chat?.map((msg, index) => (
+          {round.chat.map((msg: ChatMessage, index: number) => (
             <li key={index}>
               <strong>{msg.player}:</strong> {msg.message}
             </li>
@@ -123,7 +122,7 @@ export default function Home() {
       <div>
         <h3>Server Messages</h3>
         <ul>
-          {round.server_messages?.map((msg, index) => (
+          {round.server_messages.map((msg: string, index: number) => (
             <li key={index}>{msg}</li>
           ))}
         </ul>
