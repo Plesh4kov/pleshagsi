@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import './styles.css'; // Для кастомных анимаций и стилей
+import '../styles/styles.css';
 
 interface PlayerState {
   health: number;
