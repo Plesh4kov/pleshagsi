@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import '../styles/styles.css';
 
 interface GSIData {
-  map: {
+  map?: {
     name: string;
     team_ct: { name: string; score: number };
     team_t: { name: string; score: number };
     round: number;
   };
-  phase_countdowns: { phase: string; phase_ends_in: string };
-  allplayers: {
+  phase_countdowns?: { phase: string; phase_ends_in: string };
+  allplayers?: {
     [key: string]: {
       team: string;
       state: { health: number };
@@ -44,7 +44,7 @@ export default function GameUI() {
     return <p style={{ color: 'red' }}>Error: {error}</p>;
   }
 
-  if (!data) {
+  if (!data || !data.map || !data.phase_countdowns || !data.allplayers) {
     return <p>Loading...</p>;
   }
 
