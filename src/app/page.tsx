@@ -5,23 +5,21 @@ import { useEffect, useState } from 'react';
 export default function Home() {
   const [gsiData, setGsiData] = useState(null);
 
-  // Функция для периодического получения данных GSI
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch('/api/gsi');
         if (response.ok) {
           const data = await response.json();
-          setGsiData(data); // Устанавливаем полученные данные
+          setGsiData(data);
         }
       } catch (error) {
         console.error('Error fetching GSI data:', error);
       }
     };
 
-    // Запрашиваем данные каждые 2 секунды
     const interval = setInterval(fetchData, 2000);
-    return () => clearInterval(interval); // Очищаем интервал при размонтировании
+    return () => clearInterval(interval);
   }, []);
 
   return (
