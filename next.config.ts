@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    appDir: false, // Отключаем поддержку папки "app"
-  },
+  // Здесь можете добавить любые другие настройки, если они вам нужны
 };
 
 export default nextConfig;
