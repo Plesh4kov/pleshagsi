@@ -1,18 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-export default function Cameras() {
-  const cameras = Array.from({ length: 10 }, (_, i) => `Player${i + 1}`);
+type CameraData = {
+  playerName: string;
+  cameraLink: string;
+};
+
+const Cameras = () => {
+  const [cameras, setCameras] = useState<CameraData[]>([]);
+
+  useEffect(() => {
+    fetch('/api/get-cameras')
+      .then((res) => res.json())
+      .then((data) => setCameras(data))
+      .catch((err) => console.error('Error fetching cameras:', err));
+  }, []);
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white grid grid-cols-2 gap-4 p-6">
-      {cameras.map((camera, index) => (
-        <div
-          key={index}
-          className="bg-gray-800 p-4 rounded shadow-lg text-center flex items-center justify-center"
-        >
-          <h2 className="text-xl font-bold">{camera}</h2>
-        </div>
-      ))}
-    </main>
+    <div>
+      <h1>Linked Cameras</h1>
+      {cameras.length === 0 ? (
+        <p>No cameras linked yet.</p>
+      ) : (
+        cameras.map((camera, index) => (
+          <div key={index}>
+            <h3>{camera.playerName}</h3>
+            <video src={camera.cameraLink} controls width="640" />
+          </div>
+        ))
+      )}
+    </div>
   );
-}
+};
+
+export default Cameras;

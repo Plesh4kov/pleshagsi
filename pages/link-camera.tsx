@@ -1,65 +1,65 @@
-'use client';
+import React, { useState } from 'react';
 
-import { useEffect, useState } from 'react';
+const LinkCamera = () => {
+  const [playerName, setPlayerName] = useState('');
+  const [cameraLink, setCameraLink] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
 
-interface Player {
-  steamid: string;
-  name: string;
-}
-
-export default function LinkCamera() {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const response = await fetch('/api/gsi');
-        if (!response.ok) throw new Error('Failed to fetch data');
-        const data = await response.json();
-
-        const allPlayers = data[data.length - 1]?.allplayers || {};
-        const playerList = Object.entries(allPlayers).map(([steamid, playerData]: any) => ({
-          steamid,
-          name: playerData.name,
-        }));
-        setPlayers(playerList);
-      } catch (error) {
-        console.error('Error fetching players:', error);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!playerName || !cameraLink) {
+      setStatusMessage('Please fill in all fields.');
+      return;
+    }
+    try {
+      const response = await fetch('/api/link-camera', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ playerName, cameraLink }),
+      });
+      if (response.ok) {
+        setStatusMessage('Camera linked successfully!');
+        setPlayerName('');
+        setCameraLink('');
+      } else {
+        const errorData = await response.json();
+        setStatusMessage(`Error: ${errorData.message}`);
       }
-    };
-
-    fetchPlayers();
-  }, []);
-
-  const handleSelectPlayer = (playerName: string) => {
-    setSelectedPlayer(playerName);
-    console.log(`Player selected: ${playerName}`);
-    // Здесь можно добавить логику для отправки привязки камеры
+    } catch (error) {
+      console.error('Error linking camera:', error);
+      setStatusMessage('Failed to link camera.');
+    }
   };
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold mb-6">Link Your Camera</h1>
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl mb-4">Select Your Name</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {players.map((player) => (
-            <button
-              key={player.steamid}
-              onClick={() => handleSelectPlayer(player.name)}
-              className="bg-gray-700 text-white p-3 rounded-lg hover:bg-gray-600"
-            >
-              {player.name}
-            </button>
-          ))}
+    <div>
+      <h1>Link a Camera</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label htmlFor="playerName">Player Name:</label>
+          <input
+            type="text"
+            id="playerName"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+          />
         </div>
-      </div>
-      {selectedPlayer && (
-        <div className="mt-4 text-xl">
-          Selected Player: <span className="font-bold">{selectedPlayer}</span>
+        <div>
+          <label htmlFor="cameraLink">Camera Link:</label>
+          <input
+            type="text"
+            id="cameraLink"
+            value={cameraLink}
+            onChange={(e) => setCameraLink(e.target.value)}
+          />
         </div>
-      )}
-    </main>
+        <button type="submit">Link Camera</button>
+      </form>
+      {statusMessage && <p>{statusMessage}</p>}
+    </div>
   );
-}
+};
+
+export default LinkCamera;
