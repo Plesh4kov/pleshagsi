@@ -1,45 +1,64 @@
-import { useState } from 'react';
+'use client';
+
+import { useEffect, useState } from 'react';
 
 interface Player {
-  id: string;
+  steamid: string;
   name: string;
 }
 
-const players: Player[] = [
-  { id: '1', name: 'Player1' },
-  { id: '2', name: 'Player2' },
-  // Добавьте остальных игроков...
-];
-
 export default function LinkCamera() {
+  const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
 
-  const handleSelect = (id: string) => {
-    setSelectedPlayer(id);
-    alert(`Camera linked to ${players.find((p) => p.id === id)?.name}`);
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        const response = await fetch('/api/gsi');
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const data = await response.json();
+
+        const allPlayers = data[data.length - 1]?.allplayers || {};
+        const playerList = Object.entries(allPlayers).map(([steamid, playerData]: any) => ({
+          steamid,
+          name: playerData.name,
+        }));
+        setPlayers(playerList);
+      } catch (error) {
+        console.error('Error fetching players:', error);
+      }
+    };
+
+    fetchPlayers();
+  }, []);
+
+  const handleSelectPlayer = (playerName: string) => {
+    setSelectedPlayer(playerName);
+    console.log(`Player selected: ${playerName}`);
+    // Здесь можно добавить логику для отправки привязки камеры
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-6">Link Your Camera</h1>
-      <div className="bg-gray-800 p-6 rounded shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Select Your Name</h2>
-        <ul>
+    <main className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
+      <h1 className="text-4xl font-bold mb-6">Link Your Camera</h1>
+      <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 className="text-xl mb-4">Select Your Name</h2>
+        <div className="grid grid-cols-2 gap-4">
           {players.map((player) => (
-            <li
-              key={player.id}
-              className="cursor-pointer hover:text-yellow-400"
-              onClick={() => handleSelect(player.id)}
+            <button
+              key={player.steamid}
+              onClick={() => handleSelectPlayer(player.name)}
+              className="bg-gray-700 text-white p-3 rounded-lg hover:bg-gray-600"
             >
               {player.name}
-            </li>
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
       {selectedPlayer && (
-        <p className="mt-4 text-green-400">
-          Camera linked to: {players.find((p) => p.id === selectedPlayer)?.name}
-        </p>
+        <div className="mt-4 text-xl">
+          Selected Player: <span className="font-bold">{selectedPlayer}</span>
+        </div>
       )}
     </main>
   );
