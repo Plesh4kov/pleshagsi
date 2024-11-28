@@ -10,9 +10,10 @@ export default function Observer() {
         const response = await fetch('/api/gsi');
         if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
         const data = await response.json();
-        const observer = data.player.name; // Получаем имя игрока, которого держит обсервер
+        const observer = data?.player?.name || 'Unknown'; // Безопасная проверка на данные
         setObservedPlayer(observer);
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error('Error fetching observer data:', err); // Вывод ошибки в консоль
         setObservedPlayer('Error loading observer data');
       }
     };
@@ -24,7 +25,9 @@ export default function Observer() {
 
   return (
     <main className="min-h-screen bg-black text-white flex items-center justify-center">
-      <h1 className="text-3xl font-bold">Observer Camera: {observedPlayer}</h1>
+      <h1 className="text-3xl font-bold">
+        Observer Camera: {observedPlayer}
+      </h1>
     </main>
   );
 }
