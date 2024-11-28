@@ -2,9 +2,25 @@
 
 import { useEffect, useState } from 'react';
 
+interface PlayerState {
+  health: number;
+  armor: number;
+  helmet: boolean;
+  flashed: number;
+  smoked: number;
+  burning: number;
+  money: number;
+  round_kills: number;
+  round_killhs: number;
+  round_totaldmg: number;
+  equip_value: number;
+}
+
 interface Player {
   steamid: string;
   name: string;
+  team: string;
+  state: PlayerState;
 }
 
 export default function LinkCamera() {
@@ -19,9 +35,11 @@ export default function LinkCamera() {
         const data = await response.json();
 
         const allPlayers = data[data.length - 1]?.allplayers || {};
-        const playerList = Object.entries(allPlayers).map(([steamid, playerData]: any) => ({
+        const playerList = Object.entries(allPlayers).map(([steamid, playerData]: [string, any]) => ({
           steamid,
           name: playerData.name,
+          team: playerData.team,
+          state: playerData.state,
         }));
         setPlayers(playerList);
       } catch (error) {
