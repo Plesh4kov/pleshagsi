@@ -5,7 +5,7 @@ type CameraData = {
   cameraLink: string;
 };
 
-let cameras: CameraData[] = [];
+const cameras: CameraData[] = []; // Используем const вместо let
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
