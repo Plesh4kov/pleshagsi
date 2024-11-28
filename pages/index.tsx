@@ -1,71 +1,67 @@
-import { useEffect, useState } from 'react';
+// pages/index.tsx
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
-type PlayerData = {
-  name: string;
-  team: string;
-  health: number;
-};
-
-const Home = () => {
-  const [players, setPlayers] = useState<PlayerData[]>([]);
+const IndexPage = () => {
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [roundInfo, setRoundInfo] = useState<any>(null);
 
   useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const response = await fetch('/api/gsi');
-        const data = await response.json();
-        setPlayers(data);
-      } catch (error) {
-        console.error('Error fetching player data:', error);
-      }
+    // Получаем информацию о раунде с API
+    const fetchRoundInfo = async () => {
+      const res = await fetch('/api/gsi');
+      const data = await res.json();
+      setRoundInfo(data);
     };
 
-    fetchPlayers();
-    const interval = setInterval(fetchPlayers, 5000); // Обновляем данные каждые 5 секунд
-    return () => clearInterval(interval);
+    fetchRoundInfo();
   }, []);
 
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === '2525') {
+      setIsAuthenticated(true);
+    } else {
+      alert('Invalid password');
+    }
+  };
+
   return (
-    <div className="container">
-      <h1>Игроки на сервере</h1>
-      <div className="player-list">
-        {players.map((player, index) => (
-          <div key={index} className={`player-card ${player.team.toLowerCase()}`}>
-            <h2>{player.name}</h2>
-            <p>Команда: {player.team}</p>
-            <p>Здоровье: {player.health}</p>
-          </div>
-        ))}
-      </div>
-      <style jsx>{`
-        .container {
-          padding: 20px;
-          max-width: 800px;
-          margin: 0 auto;
-        }
-        h1 {
-          text-align: center;
-        }
-        .player-list {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 20px;
-        }
-        .player-card {
-          padding: 15px;
-          border-radius: 8px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          text-align: center;
-        }
-        .player-card.ct {
-          background-color: #e0f7fa;
-        }
-        .player-card.t {
-          background-color: #ffebee;
-        }
-      `}</style>
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+      {!isAuthenticated ? (
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="p-2 border rounded"
+            placeholder="Enter password"
+          />
+          <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+            Login
+          </button>
+        </form>
+      ) : (
+        <div className="space-y-4">
+          <h1 className="text-3xl font-bold">Round Info</h1>
+          {roundInfo ? (
+            <div>
+              <p className="text-xl">Round: {roundInfo.round}</p>
+              <p className="text-xl">Match: {roundInfo.match}</p>
+              <p className="text-xl">{roundInfo.team1} vs {roundInfo.team2}</p>
+              <p className="text-xl">Score: {roundInfo.score1} - {roundInfo.score2}</p>
+            </div>
+          ) : (
+            <p>Loading round info...</p>
+          )}
+          <Link href="/cameras">
+            <a className="text-blue-600 hover:underline">Go to Camera Links</a>
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Home;
+export default IndexPage;
