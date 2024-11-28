@@ -1,18 +1,19 @@
 // pages/cameras.tsx
 import { useState, useEffect } from 'react';
 
+// Интерфейс для данных камеры
 interface CameraData {
   playerName: string;
   cameraLink: string;
 }
 
 const CamerasPage = () => {
-  const [cameras, setCameras] = useState<CameraData[]>([]);  // Типизируем как массив объектов CameraData
+  const [cameras, setCameras] = useState<CameraData[]>([]);  // Типизируем массив камер
 
   useEffect(() => {
     const fetchCameras = async () => {
       const res = await fetch('/api/get-cameras');
-      const data: CameraData[] = await res.json();  // Указываем тип данных как массив CameraData
+      const data: CameraData[] = await res.json();  // Указываем, что это массив CameraData
       setCameras(data);
     };
 

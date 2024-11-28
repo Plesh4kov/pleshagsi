@@ -2,16 +2,25 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+// Интерфейс для типа данных раунда
+interface RoundInfo {
+  round: string;
+  match: string;
+  team1: string;
+  team2: string;
+  score1: number;
+  score2: number;
+}
+
 const IndexPage = () => {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [roundInfo, setRoundInfo] = useState<any>(null);
+  const [roundInfo, setRoundInfo] = useState<RoundInfo | null>(null);  // Используем интерфейс RoundInfo
 
   useEffect(() => {
-    // Получаем информацию о раунде с API
     const fetchRoundInfo = async () => {
       const res = await fetch('/api/gsi');
-      const data = await res.json();
+      const data: RoundInfo = await res.json();  // Указываем тип для данных, получаемых из API
       setRoundInfo(data);
     };
 
