@@ -1,7 +1,6 @@
-import { PageV2 } from '../src/app/page';
 import {useEffect, useState} from "react";
 
-export function V2() {
+export default function V2() {
     return <PageV2 />;
 }
 
