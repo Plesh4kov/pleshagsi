@@ -30,7 +30,7 @@ export default function Rounds() {
   useEffect(() => {
     const fetchRounds = async () => {
       try {
-        const response = await fetch('/api/gsi');
+        const response = await fetch('https://pleshagsi.vercel.app/api/gsi');
         if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
         const json: RoundData[] = await response.json();
         setData(json);

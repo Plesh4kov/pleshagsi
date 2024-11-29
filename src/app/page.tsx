@@ -18,7 +18,6 @@ interface GSIData {
     map: MapInfo;
     phase_countdowns: { phase_ends_in: string };
     round: { phase: string };
-    allplayers: Record<string, Player>;
 }
 
 export default function Scoreboard() {
