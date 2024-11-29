@@ -3,6 +3,13 @@
 import { useEffect, useState } from 'react';
 import '../src/styles/styles.css';
 
+interface Player {
+  nickname: string;
+  kills: number;
+  deaths: number;
+  team: string;
+}
+
 interface RoundData {
   map: {
     name: string;
@@ -13,6 +20,7 @@ interface RoundData {
   round: {
     phase: string;
   };
+  players: Player[];
 }
 
 export default function Rounds() {
@@ -51,10 +59,10 @@ export default function Rounds() {
         {data.map((round, index) => (
           <div
             key={index}
-            className="bg-gray-800 rounded-lg shadow-lg p-4 mb-4"
+            className="bg-gray-800 rounded-lg shadow-lg p-4 mb-6"
           >
             <h2 className="text-xl font-bold mb-2">Map: {round.map.name}</h2>
-            <div className="flex justify-between">
+            <div className="flex justify-between mb-4">
               <div className="text-center">
                 <h3 className="font-bold">CT Team</h3>
                 <p>Name: {round.map.team_ct.name}</p>
@@ -66,9 +74,32 @@ export default function Rounds() {
                 <p>Score: {round.map.team_t.score}</p>
               </div>
             </div>
-            <div className="text-center mt-4">
+            <div className="text-center mb-4">
               <p>Round: {round.map.round}</p>
               <p>Phase: {round.round.phase}</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold mb-2">Players</h3>
+              <table className="table-auto w-full text-left">
+                <thead>
+                  <tr>
+                    <th className="border px-4 py-2">Nickname</th>
+                    <th className="border px-4 py-2">Kills</th>
+                    <th className="border px-4 py-2">Deaths</th>
+                    <th className="border px-4 py-2">Team</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {round.players.map((player, playerIndex) => (
+                    <tr key={playerIndex}>
+                      <td className="border px-4 py-2">{player.nickname}</td>
+                      <td className="border px-4 py-2">{player.kills}</td>
+                      <td className="border px-4 py-2">{player.deaths}</td>
+                      <td className="border px-4 py-2">{player.team}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         ))}
