@@ -26,7 +26,6 @@ export default function Scoreboard() {
     const [error, setError] = useState<string | null>(null);
     const [password, setPassword] = useState<string>('');
     const [authenticated, setAuthenticated] = useState<boolean>(false);
-    const [selectedPlayer, setSelectedPlayer] = useState<string>('');
 
     useEffect(() => {
         if (authenticated) {
@@ -53,15 +52,6 @@ export default function Scoreboard() {
         } else {
             alert('Incorrect password!');
         }
-    };
-
-    const getPlayerNames = () => {
-        if (!data || !data.allplayers) return [];
-        return Object.values(data.allplayers).map((player) => player.name);
-    };
-
-    const handlePlayerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedPlayer(e.target.value);
     };
 
     if (!authenticated) {
@@ -94,7 +84,6 @@ export default function Scoreboard() {
     }
 
     const { map, phase_countdowns, round } = data;
-    const playerNames = getPlayerNames();
 
     return (
         <main className="p-4 bg-gradient-to-b from-gray-900 to-black text-white min-h-screen flex flex-col items-center justify-center">
@@ -131,13 +120,6 @@ export default function Scoreboard() {
                     Time Remaining: <span className="font-bold">{phase_countdowns.phase_ends_in}s</span>
                 </p>
             </div>
-
-            {/* Выбранный игрок */}
-            {selectedPlayer && (
-                <div className="text-center bg-gray-700 p-4 rounded-lg shadow-lg">
-                    <h2 className="text-lg font-semibold">Selected Player: {selectedPlayer}</h2>
-                </div>
-            )}
         </main>
     );
 }
