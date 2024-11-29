@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import '../styles/styles.css';
+import '/styles/styles.css';
 
 interface RoundData {
   map: {
