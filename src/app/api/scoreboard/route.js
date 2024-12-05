@@ -1,29 +1,5 @@
-export async function GET() {
-  try {
-    // Делаем запрос к существующему API /api/gsi
-    const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/gsi`);
+import { GET as gsiHandler } from '@/app/api/gsi/route';
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch data from /api/gsi: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
-  } catch (error) {
-    console.error("Error in /api/scoreboard:", error.message);
-    return new Response(JSON.stringify({ error: "Failed to fetch scoreboard" }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
-  }
+export async function GET(request) {
+  return gsiHandler(request);
 }
