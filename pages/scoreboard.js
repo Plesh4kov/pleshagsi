@@ -1,9 +1,44 @@
-import { GET } from "@/app/api/gsi/route";
+"use client";
 
-export default async function handler(req, res) {
-    const response = await GET(); // Вызываем существующий GET-обработчик
-    const data = await response.json(); // Конвертируем данные в JSON
+import { useEffect, useState } from "react";
 
-    res.setHeader("Content-Type", "application/json");
-    res.status(200).json(data); // Отправляем чистый JSON
+export default function Scoreboard() {
+    const [data, setData] = useState([]);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await fetch("/api/gsi"); // Обращаемся к API в App Router
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const jsonData = await response.json();
+                setData(jsonData);
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+
+        fetchData();
+
+        // Обновляем данные каждые 5 секунд
+        const interval = setInterval(fetchData, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+    if (error) {
+        return <p>Error: {error}</p>;
+    }
+
+    if (!data.length) {
+        return <p>No data received yet.</p>;
+    }
+
+    return (
+        <div>
+            <h1>Scoreboard</h1>
+            <pre>{JSON.stringify(data, null, 2)}</pre>
+        </div>
+    );
 }
