@@ -1,26 +1,21 @@
 export default async function handler(req, res) {
     if (req.method === "GET") {
         try {
-            // Делаем HTTP-запрос к API /api/gsi
-            const protocol = req.headers["x-forwarded-proto"] || "http";
-            const host = req.headers.host;
-            const apiUrl = `${protocol}://${host}/api/gsi`;
+            // Вызываем напрямую обработчик из src/app/api/gsi/route.js
+            const { GET } = await import('@/app/api/gsi/route');
 
-            const response = await fetch(apiUrl);
-
-            if (!response.ok) {
-                throw new Error(`API responded with status ${response.status}`);
-            }
-
+            const response = await GET(); // Вызов функции GET
             const data = await response.json();
 
-            // Устанавливаем заголовки для JSON-ответа
+            // Устанавливаем заголовки для vMix
             res.setHeader("Content-Type", "application/json");
             res.setHeader("Access-Control-Allow-Origin", "*");
+
+            // Возвращаем данные в формате JSON
             return res.status(200).json(data);
         } catch (error) {
-            console.error("Error fetching data from /api/gsi:", error.message);
-            return res.status(500).json({ error: "Failed to fetch data" });
+            console.error("Error fetching data from route.js:", error.message);
+            return res.status(500).json({ error: "Failed to fetch data from GSI route" });
         }
     }
 
