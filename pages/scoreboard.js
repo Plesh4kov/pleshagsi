@@ -1,19 +1,19 @@
 let roundData = []; // Хранилище для данных о раундах
 
 export default function handler(req, res) {
-    // Настройка CORS
+    // Установка заголовков для CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'POST') {
         try {
-            const jsonData = req.body; // Получаем данные из тела запроса
+            const jsonData = req.body; // Чтение JSON из тела запроса
             roundData.push(jsonData);
 
-            // Ограничиваем размер массива (например, до 100 элементов)
+            // Ограничиваем массив до 100 элементов
             if (roundData.length > 100) {
-                roundData.shift(); // Удаляем самый старый элемент
+                roundData.shift();
             }
 
             return res.status(200).json({ message: 'GSI data received' });
