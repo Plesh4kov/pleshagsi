@@ -1,31 +1,31 @@
-export default async function handler(req, res) {
-    if (req.method === "GET") {
-        try {
-            // Формируем URL для локального API
-            const protocol = req.headers["x-forwarded-proto"] || "http";
-            const host = req.headers.host;
-            const apiUrl = `${protocol}://${host}/api/gsi`;
+"use client";
 
-            // Запрашиваем данные из API
-            const response = await fetch(apiUrl);
+import { useEffect, useState } from "react";
 
-            if (!response.ok) {
-                throw new Error(`API responded with status ${response.status}`);
-            }
+export default function Scoreboard() {
+  const [data, setData] = useState(null);
 
-            const data = await response.json();
-
-            // Устанавливаем заголовки для CORS
-            res.setHeader("Content-Type", "application/json");
-            res.setHeader("Access-Control-Allow-Origin", "*");
-
-            // Возвращаем данные
-            return res.status(200).json(data);
-        } catch (error) {
-            console.error("Error fetching data:", error.message);
-            return res.status(500).json({ error: "Failed to fetch data" });
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch("/api/gsi");
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
         }
+        const jsonData = await response.json();
+        setData(jsonData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setData({ error: "Failed to load data" });
+      }
     }
 
-    return res.status(405).json({ error: "Method not allowed" });
+    fetchData();
+  }, []);
+
+  if (!data) {
+    return <div>Loading...</div>;
+  }
+
+  return <pre>{JSON.stringify(data, null, 2)}</pre>;
 }
