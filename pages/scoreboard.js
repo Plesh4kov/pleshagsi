@@ -1,13 +1,15 @@
 export default async function handler(req, res) {
     if (req.method === "GET") {
         try {
-            // Используем абсолютный URL для API-запроса
-            const apiUrl = `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}/api/gsi`;
+            // Формируем абсолютный URL для API
+            const protocol = req.headers["x-forwarded-proto"] || "http";
+            const host = req.headers.host;
+            const apiUrl = `${protocol}://${host}/api/gsi`;
 
             // Делаем запрос к API
             const response = await fetch(apiUrl);
             if (!response.ok) {
-                throw new Error(`Failed to fetch API: ${response.status}`);
+                throw new Error(`API responded with status ${response.status}`);
             }
 
             const data = await response.json();
@@ -23,3 +25,7 @@ export default async function handler(req, res) {
 
     return res.status(405).json({ error: "Method not allowed" });
 }
+
+export const config = {
+    runtime: "edge", // Для обработки только на сервере
+};
