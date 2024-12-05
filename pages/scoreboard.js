@@ -1,38 +1,44 @@
-let roundData = []; // Хранилище для данных о раундах
+"use client";
 
-export default function handler(req, res) {
-    // Установка заголовков для CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+import { useEffect, useState } from "react";
 
-    if (req.method === 'POST') {
-        try {
-            const jsonData = req.body; // Чтение JSON из тела запроса
-            roundData.push(jsonData);
+export default function Scoreboard() {
+    const [data, setData] = useState([]);
+    const [error, setError] = useState(null);
 
-            // Ограничиваем массив до 100 элементов
-            if (roundData.length > 100) {
-                roundData.shift();
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await fetch("/api/gsi"); // HTTP-запрос к API
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const jsonData = await response.json();
+                setData(jsonData);
+            } catch (err) {
+                setError(err.message);
             }
-
-            return res.status(200).json({ message: 'GSI data received' });
-        } catch (error) {
-            console.error('Error processing GSI data:', error);
-            return res.status(500).json({ error: 'Failed to process GSI data' });
         }
+
+        fetchData();
+
+        // Автообновление каждые 5 секунд
+        const interval = setInterval(fetchData, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+    if (error) {
+        return <p>Error: {error}</p>;
     }
 
-    if (req.method === 'GET') {
-        if (roundData.length === 0) {
-            return res.status(404).json({ message: 'No data received yet' });
-        }
-        return res.status(200).json(roundData);
+    if (!data.length) {
+        return <p>No data received yet.</p>;
     }
 
-    if (req.method === 'OPTIONS') {
-        return res.status(204).end();
-    }
-
-    return res.status(405).json({ error: 'Method not allowed' });
+    return (
+        <div>
+            <h1>Scoreboard</h1>
+            <pre>{JSON.stringify(data, null, 2)}</pre>
+        </div>
+    );
 }
