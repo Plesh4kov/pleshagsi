@@ -1,24 +1,25 @@
 export default async function handler(req, res) {
     if (req.method === "GET") {
         try {
-            // Делаем запрос к API (куда данные приходят из src/app/api/gsi/route.js)
-            const response = await fetch(`${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}/api/gsi`);
-            
+            // Используем абсолютный URL для API-запроса
+            const apiUrl = `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}/api/gsi`;
+
+            // Делаем запрос к API
+            const response = await fetch(apiUrl);
             if (!response.ok) {
-                throw new Error(`API responded with status ${response.status}`);
+                throw new Error(`Failed to fetch API: ${response.status}`);
             }
 
             const data = await response.json();
 
-            // Возвращаем данные в формате JSON
+            // Возвращаем данные клиенту
             res.setHeader("Content-Type", "application/json");
             return res.status(200).json(data);
         } catch (error) {
-            console.error("Error fetching data from /api/gsi:", error.message);
-            return res.status(500).json({ error: "Failed to fetch data from API" });
+            console.error("Error fetching API:", error.message);
+            return res.status(500).json({ error: "Failed to fetch API" });
         }
     }
 
-    // Если метод запроса не GET
     return res.status(405).json({ error: "Method not allowed" });
 }
