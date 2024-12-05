@@ -1,16 +1,17 @@
 let roundData = []; // Хранилище для данных о раундах
 
 export default function handler(req, res) {
+    // Настройка CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'POST') {
         try {
-            const jsonData = req.body; // Получаем данные из POST-запроса
+            const jsonData = req.body; // Получаем данные из тела запроса
             roundData.push(jsonData);
 
-            // Ограничиваем количество записей (например, до 100 последних)
+            // Ограничиваем размер массива (например, до 100 элементов)
             if (roundData.length > 100) {
                 roundData.shift(); // Удаляем самый старый элемент
             }
