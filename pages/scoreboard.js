@@ -1,44 +1,37 @@
-"use client";
+let roundData = []; // Хранилище для данных о раундах
 
-import { useEffect, useState } from "react";
+export default function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-export default function Scoreboard() {
-    const [data, setData] = useState([]);
-    const [error, setError] = useState(null);
+    if (req.method === 'POST') {
+        try {
+            const jsonData = req.body; // Получаем данные из POST-запроса
+            roundData.push(jsonData);
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const response = await fetch("/api/gsi"); // Обращаемся к API в App Router
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const jsonData = await response.json();
-                setData(jsonData);
-            } catch (err) {
-                setError(err.message);
+            // Ограничиваем количество записей (например, до 100 последних)
+            if (roundData.length > 100) {
+                roundData.shift(); // Удаляем самый старый элемент
             }
+
+            return res.status(200).json({ message: 'GSI data received' });
+        } catch (error) {
+            console.error('Error processing GSI data:', error);
+            return res.status(500).json({ error: 'Failed to process GSI data' });
         }
-
-        fetchData();
-
-        // Обновляем данные каждые 5 секунд
-        const interval = setInterval(fetchData, 5000);
-        return () => clearInterval(interval);
-    }, []);
-
-    if (error) {
-        return <p>Error: {error}</p>;
     }
 
-    if (!data.length) {
-        return <p>No data received yet.</p>;
+    if (req.method === 'GET') {
+        if (roundData.length === 0) {
+            return res.status(404).json({ message: 'No data received yet' });
+        }
+        return res.status(200).json(roundData);
     }
 
-    return (
-        <div>
-            <h1>Scoreboard</h1>
-            <pre>{JSON.stringify(data, null, 2)}</pre>
-        </div>
-    );
+    if (req.method === 'OPTIONS') {
+        return res.status(204).end();
+    }
+
+    return res.status(405).json({ error: 'Method not allowed' });
 }
